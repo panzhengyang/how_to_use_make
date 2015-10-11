@@ -1,0 +1,111 @@
+make学习记录
+
+2015年10月11日 星期日
+下午4:40
+
+一、制定文件
+make -f Make.Linux 指定make文件  文件中使用tab健进行运算
+
+二、包含文件
+make文件中可以包含别的变量以及包含其他的make文件
+include foo.make a.mk b.mk c.mk e.mk f.mk
+
+三、内容格式
+foo.o: foo.c def.h 
+ 	cc -c -g foo.c 
+文件的依赖关系,foo.o 依赖于 foo.c 和 defs.h 的文件 
+Foo.o是生成的目标文件
+
+四、clean提示
+clean:    cat m.c
+        rm  *.o
+     查看文件并且消除所有的o文件
+
+五、目录设定文件夹
+VPATH = src:../headers
+上面的的定义指定两个目录,“src”和“../headers”,make 会按照这个顺序进行搜索。 
+目录由“冒号”分隔
+vpath %.h ../headers该语句表示,要求 make 在“../headers”目录下搜索所有以“.h”结尾的文件
+
+六、匹配格式
+“%”的意思是匹配零或若干字 符,(需引用“%”,使用“\%”)例如,“%.h”表示所有以“.h”结尾的文件 
+$<表示所有的依赖目标 集(也就是“foo.c bar.c”)
+$@表示目标集(也就是“foo.o bar.o”) 
+$^: 依赖目标中的第一个目标名字 
+objects = foo.o bar.o
+all: $(objects)
+$(objects): %.o: %.c
+$(CC) -c $(CFLAGS) $< -o $@ 
+
+相当于：  
+foo.o : foo.c
+$(CC) -c $(CFLAGS) foo.c -o foo.o 
+bar.o : bar.c
+$(CC) -c $(CFLAGS) bar.c -o bar.o 
+
+
+七、内部函数以及伪目标
+all : prog1 prog2 prog3.PHONY : all
+prog1 : prog1.o utils.o    cc -o prog1 prog1.o utils.o
+prog2 : prog2.o    cc -o prog2 prog2.o
+prog3 : prog3.o sort.o utils.o    cc -o prog3 prog3.o sort.o utils.o
+Make all 则运行三个文件
+all: 这个伪目标是所有目标的目标,其功能一般是编译所有的目标 
+• clean: 这个伪目标功能是删除所有被 make 创建的文件。 
+• install: 这个伪目标功能是安装已编译好的程序,其实就是把目标执行文件拷贝到指定 的目标中去 
+• print: 这个伪目标的功能是例出改变过的源文件。 
+• tar: 这个伪目标功能是把源程序打包备份。也就是一个 tar 文件。 
+• dist: 这个伪目标功能是创建一个压缩文件,一般是把 tar 文件压成 Z 文件。或是 gz 文件。 
+• TAGS: 这个伪目标功能是更新所有的目标,以备完整地重编译使用。 
+• check 和 test: 这两个伪目标一般用来测试 makefile 的流程 
+
+
+八、c语言选项
+大多数的 C/C++ 编译器都支持一个“-M”的选项,即自动找寻源文件中包含的头文件,并生成一个依赖关系 
+cc -M main.c 
+其输出是: 
+main.o : main.c defs.h
+如果你使用 GNU 的 C/C++ 编译器,你得用“- MM”参数,不然,“-M”参数会把一些标准库的头文件也包含进来 
+
+九、执行命令输出
+需要注意的是,如果你要让上一条命令的结果应用在下一条命令时,你应该使用分号 分隔这两条命令 
+当我们执行“make exec”时,第一个例子中的 cd 没有作用,pwd 会打印出当前的 Makefile 目录,而第二个例子中,cd 就起作用了,pwd 会打印出“/home/hchen” 
+
+十、make编译选项
+给 make 加上“-i”或是“--ignore-errors”参数,那么, Makefile 中所有命令都会忽略错误 
+make 的参数的是“-k”或是“--keep-going”,这个参数的意思是, 如果某规则中的命令出错了,那么就终目该规则的执行,但继续执行其它规则 
+
+十一、变量说明
+需要给在变量名前加上“$”符号,但最好用小 括号“()”或是大括号“{}”把变量给包括起来 
+
+我们可以使用“+=”操作符给变量追加值 
+  一些变量默认值
+  AR: 函数库打包程序。默认命令是“ar”。
+• AS: 汇编语言编译程序。默认命令是“as”。
+• CC:C 语言编译程序。默认命令是“cc”。
+• CXX:C++ 语言编译程序。默认命令是“g++”。
+• CO: 从 RCS 文件中扩展文件程序。默认命令是“co”。
+• CPP:C 程序的预处理器(输出是标准输出设备)。默认命令是“$(CC) –E”。
+• FC:Fortran 和 Ratfor 的编译器和预处理程序。默认命令是“f77”。
+• GET: 从 SCCS 文件中扩展文件的程序。默认命令是“get”。
+• LEX:Lex 方法分析器程序(针对于 C 或 Ratfor)。默认命令是“lex”。
+• PC:Pascal 语言编译程序。默认命令是“pc”。
+• YACC:Yacc 文法分析器(针对于 C 程序)。默认命令是“yacc”。
+• YACCR:Yacc 文法分析器(针对于 Ratfor 程序)。默认命令是“yacc –r”。 •MAKEINFO:转换Texinfo源文件(.texi)到Info文件程序。默认命令是“makeinfo”。 • TEX: 从 TeX 源文件创建 TeX DVI 文件的程序。默认命令是“tex”。
+• TEXI2DVI: 从 Texinfo 源文件创建军 TeX DVI 文件的程序。默认命令是“texi2dvi”。 • WEAVE: 转换 Web 到 TeX 的程序。默认命令是“weave”。
+• CWEAVE: 转换 C Web 到 TeX 的程序。默认命令是“cweave”。
+• TANGLE: 转换 Web 到 Pascal 语言的程序。默认命令是“tangle”。
+• CTANGLE: 转换 C Web 到 C。默认命令是“ctangle”。 
+   RM: 删除文件命令。默认命令是“rm –f” 
+
+
+十二、例子（全部生成）
+
+.PHONY: all
+all: lists listg
+% :%.f
+	$(LINK) -o $@ -c $<
+
+
+参考 http://swcarpentry.github.io/make-novice/
+    http://seisman.info/how-to-write-makefile.html
